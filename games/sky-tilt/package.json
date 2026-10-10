@@ -1,0 +1,16 @@
+{
+  "name": "@joyconhub/sky-tilt",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./meta": "./src/meta.ts"
+  },
+  "dependencies": {
+    "@joyconhub/game-sdk": "workspace:*",
+    "@joyconhub/protocol": "workspace:*",
+    "simplex-noise": "^4.0.3",
+    "three": "^0.180.0"
+  }
+}

@@ -5,6 +5,8 @@
 
 First game: **Sky Tilt**, a simple plane flying game. You steer by tilting the phone (accelerometer + gyroscope).
 
+> **Status:** Phases 0–4 (the MVP) are implemented. See [README.md](README.md) for how to run it. Small deviations from this plan: the server runs TypeScript directly through `tsx`, a Dockerfile replaces platform-specific deploy config, and the room code entry fallback is replaced by a link shown under the QR code (joining always needs the controller token).
+
 ---
 
 ## 1. Goals & Scope

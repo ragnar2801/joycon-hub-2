@@ -1,0 +1,130 @@
+:root {
+  --bg: #0f0c1d;
+  --bg-2: #171331;
+  --panel: rgba(255, 255, 255, 0.06);
+  --panel-strong: rgba(255, 255, 255, 0.1);
+  --line: rgba(255, 255, 255, 0.12);
+  --text: #f4f2ff;
+  --muted: #a9a3c9;
+  --left: #ff4d6d;
+  --right: #3fa9ff;
+  --accent: #ffd23f;
+  --ok: #4dff88;
+  --warn: #ffb547;
+  --bad: #ff5a5a;
+  --radius: 20px;
+  --font:
+    'Outfit', ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 22px;
+  font-weight: 700;
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+  transition:
+    transform 0.12s ease,
+    background 0.2s ease;
+}
+.btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn.primary {
+  background: linear-gradient(135deg, var(--left), #ff7b54);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 10px 30px -10px rgba(255, 77, 109, 0.7);
+}
+.btn.blue {
+  background: linear-gradient(135deg, var(--right), #6a7bff);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 10px 30px -10px rgba(63, 169, 255, 0.7);
+}
+.btn.ghost {
+  background: transparent;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+.logo .pills {
+  display: inline-flex;
+  gap: 3px;
+}
+.logo .pills i {
+  display: block;
+  width: 12px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--left);
+}
+.logo .pills i + i {
+  background: var(--right);
+}
+.logo b {
+  background: linear-gradient(90deg, var(--left), var(--right));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: none;
+}
+.dot.ok {
+  background: var(--ok);
+  box-shadow: 0 0 12px var(--ok);
+}
+.dot.warn {
+  background: var(--warn);
+  box-shadow: 0 0 12px var(--warn);
+}
+.dot.bad {
+  background: var(--bad);
+  box-shadow: 0 0 12px var(--bad);
+}
+
+.hidden {
+  display: none !important;
+}
