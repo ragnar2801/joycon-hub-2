@@ -6,6 +6,7 @@ import {
   controllerPath,
   isValidRoomCode,
   normalizeRoomCode,
+  p2pPeerId,
 } from '../src/index.ts';
 
 describe('room codes', () => {
@@ -18,8 +19,12 @@ describe('room codes', () => {
     expect(isValidRoomCode('K0QX')).toBe(false);
     expect(isValidRoomCode(normalizeRoomCode(' k7qx '))).toBe(true);
   });
-  it('builds controller path', () => {
-    expect(controllerPath('ABCD', 'x y')).toBe('/c/ABCD?t=x%20y');
+  it('builds relative controller paths', () => {
+    expect(controllerPath('ABCD', 'x y')).toBe('controller.html?r=ABCD&t=x+y');
+    expect(controllerPath('ABCD', 'tok', 'p2p')).toBe('controller.html?r=ABCD&t=tok&m=p2p');
+  });
+  it('builds PeerJS-safe ids', () => {
+    expect(p2pPeerId('K7QX', 'aB3dE')).toMatch(/^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/);
   });
 });
 

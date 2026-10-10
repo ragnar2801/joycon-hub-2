@@ -50,16 +50,22 @@ function renderHome(): void {
   });
 }
 
+/** Current URL with some query params changed, keeping others such as debug/transport. */
+function withParams(changes: Record<string, string | null>): string {
+  const q = new URLSearchParams(location.search);
+  for (const [k, v] of Object.entries(changes)) {
+    if (v === null) q.delete(k);
+    else q.set(k, v);
+  }
+  const qs = q.toString();
+  return qs ? `${location.pathname}?${qs}` : location.pathname;
+}
+
 function openGame(id: string, push = true): void {
   const def = findGame(id);
   if (!def?.available || !def.load) return;
   session?.destroy();
-  if (push)
-    history.pushState(
-      { game: id },
-      '',
-      `?game=${encodeURIComponent(id)}${debug ? '&debug=1' : ''}`,
-    );
+  if (push) history.pushState({ game: id }, '', withParams({ game: id }));
   document.title = `${def.title} · JoyCon Hub`;
   session = new GameSession(def, app, { exit: goHome, debug });
   void session.start();
@@ -68,7 +74,7 @@ function openGame(id: string, push = true): void {
 function goHome(): void {
   session?.destroy();
   session = null;
-  history.pushState({}, '', debug ? '?debug=1' : location.pathname);
+  history.pushState({}, '', withParams({ game: null }));
   renderHome();
 }
 

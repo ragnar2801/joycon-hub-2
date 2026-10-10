@@ -5,7 +5,7 @@
 
 First game: **Sky Tilt**, a simple plane flying game. You steer by tilting the phone (accelerometer + gyroscope).
 
-> **Status:** Phases 0–4 (the MVP) are implemented. See [README.md](README.md) for how to run it. Small deviations from this plan: the server runs TypeScript directly through `tsx`, a Dockerfile replaces platform-specific deploy config, and the room code entry fallback is replaced by a link shown under the QR code (joining always needs the controller token).
+> **Status:** Phases 0–4 (the MVP) are implemented. See [README.md](README.md) for how to run it. Small deviations from this plan: the server runs TypeScript directly through `tsx`, a Dockerfile replaces platform-specific deploy config, and the room code entry fallback is replaced by a link shown under the QR code (joining always needs the controller token). The WebRTC transport from Phase 5 was pulled forward so the hub can be hosted for free on GitHub Pages without any server.
 
 ---
 

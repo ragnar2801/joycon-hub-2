@@ -8,12 +8,17 @@ import {
 } from '@joyconhub/game-sdk';
 import {
   CloseCode,
-  type CreateRoomResponse,
   type HostInbound,
   type HostState,
   type HostToController,
 } from '@joyconhub/protocol';
-import { RelaySocket, type SocketStatus } from '../net/socket.ts';
+import {
+  RoomError,
+  createHostRoom,
+  hubTransport,
+  type Link,
+  type SocketStatus,
+} from '../net/transport.ts';
 import { escapeHtml, readJSON, writeJSON } from '../shared/storage.ts';
 import { KeyboardInput } from './keyboard.ts';
 import { pairingTarget, qrSvg, type PairingTarget } from './pairingUrl.ts';
@@ -34,10 +39,13 @@ export interface SessionHost {
  * the mounted game, and the pause/resume rules when the phone disconnects.
  */
 export class GameSession {
-  private room: CreateRoomResponse | null = null;
+  private readonly transport = hubTransport();
+  private room: { roomCode: string; controllerToken: string } | null = null;
   private target: PairingTarget | null = null;
   private qr = '';
-  private socket: RelaySocket<HostInbound, HostToController> | null = null;
+  private socket: Link<HostToController> | null = null;
+  /** consecutive room set-up failures, to avoid retrying forever */
+  private roomFailures = 0;
   private socketStatus: SocketStatus = 'connecting';
   private controllerConnected = false;
   private calibrated = false;
@@ -95,49 +103,49 @@ export class GameSession {
 
   private async openRoom(): Promise<void> {
     this.socket?.close();
+    this.socket = null;
     this.error = null;
-    try {
-      const res = await fetch('/api/rooms', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ gameId: this.def.id }),
-      });
-      if (!res.ok)
-        throw new Error(
-          res.status === 429
-            ? 'Too many rooms created. Wait a minute and try again.'
-            : `Server error (${res.status})`,
-        );
-      this.room = (await res.json()) as CreateRoomResponse;
-    } catch (e) {
-      this.error =
-        e instanceof Error && e.message !== 'Failed to fetch'
-          ? e.message
-          : 'Cannot reach the JoyCon Hub server. Is it running?';
-      this.refresh();
-      return;
-    }
-    if (this.destroyed) return;
-    this.target = await pairingTarget(this.room.roomCode, this.room.controllerToken);
-    this.qr = await qrSvg(this.target.url);
+    this.room = null;
+    this.target = null;
+    this.qr = '';
     this.controllerConnected = false;
     this.calibrated = false;
-    this.socket = new RelaySocket<HostInbound, HostToController>({
-      role: 'host',
-      room: this.room.roomCode,
-      token: this.room.hostToken,
-      onMessage: (m) => this.onMessage(m),
-      onStatus: (s, code) => this.onSocketStatus(s, code),
-    });
+    this.socketStatus = 'connecting';
+    this.refresh();
+    try {
+      const room = await createHostRoom(this.transport, this.def.id, {
+        onMessage: (m) => this.onMessage(m),
+        onStatus: (s, code) => this.onSocketStatus(s, code),
+      });
+      if (this.destroyed) {
+        room.link.close();
+        return;
+      }
+      this.socket = room.link;
+      this.room = room;
+      this.target = await pairingTarget(this.transport, room.roomCode, room.controllerToken);
+      this.qr = await qrSvg(this.target.url);
+    } catch (e) {
+      this.error = e instanceof RoomError ? e.message : 'Could not create a game room.';
+    }
     this.refresh();
   }
 
   private onSocketStatus(status: SocketStatus, code?: number): void {
     this.socketStatus = status;
+    if (status === 'open') this.roomFailures = 0;
     if (status === 'failed' && code !== CloseCode.Replaced) {
-      // Room is gone (e.g. server restarted): make a new one and show the new QR.
       this.controllerConnected = false;
       if (this.phase === 'playing') this.pause('lost');
+      if (code === CloseCode.BadRequest || ++this.roomFailures > 3) {
+        this.error =
+          this.transport === 'p2p'
+            ? 'Could not set up a direct connection in this browser. Try an up-to-date Chrome, Edge, Firefox or Safari.'
+            : 'Lost the connection to the JoyCon Hub server.';
+        this.refresh();
+        return;
+      }
+      // Room is gone (e.g. server restarted): make a new one and show the new QR.
       void this.openRoom();
       return;
     }
@@ -210,13 +218,11 @@ export class GameSession {
   }
 
   private setControllerConnected(connected: boolean): void {
-    const was = this.controllerConnected;
     this.controllerConnected = connected;
     if (connected) {
-      if (!was) {
-        this.lastSeq = -1;
-        this.calibrated = false;
-      }
+      // A (re)connected phone starts a fresh input stream and re-sends `calibrated` if it is.
+      this.lastSeq = -1;
+      this.calibrated = false;
       this.sendLayout();
       this.sendState();
     } else {
@@ -387,7 +393,11 @@ export class GameSession {
               <li data-step="start"><span class="state">2</span><span>Tap <b>Start</b> and allow motion access</span></li>
               <li data-step="calibrate"><span class="state">3</span><span>Hold it sideways like a controller, tap <b>Calibrate</b></span></li>
             </ol>
-            <p class="hint">Phone and computer need internet access. During local development they must be on the same Wi-Fi.</p>
+            <p class="hint">${
+              this.transport === 'p2p'
+                ? 'Phone and computer connect directly to each other, so both need internet access. Same Wi-Fi gives the lowest lag.'
+                : 'Phone and computer need internet access. During local development they must be on the same Wi-Fi.'
+            }</p>
             <div class="notice hidden" data-el="notice"></div>
             <div class="pair-actions">
               <button class="btn hidden" data-action="retry">Try again</button>
@@ -432,7 +442,8 @@ export class GameSession {
 
   private statusText(): string {
     if (this.error) return 'Not connected';
-    if (this.socketStatus !== 'open') return 'Connecting to server…';
+    if (this.socketStatus !== 'open')
+      return this.transport === 'p2p' ? 'Setting up connection…' : 'Connecting to server…';
     if (!this.controllerConnected) return 'Waiting for your phone…';
     return this.calibrated ? 'Ready!' : 'Phone connected: calibrate on your phone';
   }
@@ -537,6 +548,7 @@ export class GameSession {
             this.host.exit();
             break;
           case 'retry':
+            this.roomFailures = 0;
             void this.openRoom();
             break;
           case 'keyboard':

@@ -12,8 +12,9 @@ import {
   type ControllerLayout,
   type ControllerToHost,
   type HostState,
+  type TransportKind,
 } from '@joyconhub/protocol';
-import { RelaySocket, type SocketStatus } from '../net/socket.ts';
+import { connectController, type Link, type SocketStatus } from '../net/transport.ts';
 import { escapeHtml, readJSON, writeJSON } from '../shared/storage.ts';
 import { AttitudeIndicator } from './attitude.ts';
 import { DeviceSensors, TouchTiltSensors, type SensorSource } from './sensors.ts';
@@ -30,27 +31,36 @@ const SESSION_KEY = 'joyconhub:controller';
 const params = new URLSearchParams(location.search);
 const simMode = params.has('sim');
 
-function readCredentials(): { room: string; token: string } | null {
-  const m = location.pathname.match(/^\/c\/([^/]+)/);
-  const fromUrl = m ? normalizeRoomCode(decodeURIComponent(m[1]!)) : '';
-  const tokenFromUrl = params.get('t') ?? '';
-  if (fromUrl && tokenFromUrl && isValidRoomCode(fromUrl)) {
-    writeJSON('session', SESSION_KEY, { room: fromUrl, token: tokenFromUrl });
+interface Credentials {
+  room: string;
+  token: string;
+  transport: TransportKind;
+}
+
+function readCredentials(): Credentials | null {
+  const room = normalizeRoomCode(params.get('r') ?? '');
+  const token = params.get('t') ?? '';
+  const transport: TransportKind = params.get('m') === 'p2p' ? 'p2p' : 'relay';
+  if (room && token && isValidRoomCode(room)) {
+    writeJSON('session', SESSION_KEY, { room, token, transport });
     // Keep the secret out of the address bar (screenshots, sharing); reloads use sessionStorage.
-    history.replaceState(null, '', `/c/${fromUrl}${simMode ? '?sim=1' : ''}`);
-    return { room: fromUrl, token: tokenFromUrl };
+    const keep = new URLSearchParams({ r: room });
+    if (simMode) keep.set('sim', '1');
+    history.replaceState(null, '', `${location.pathname}?${keep.toString()}`);
+    return { room, token, transport };
   }
-  const saved = readJSON<{ room: string; token: string }>('session', SESSION_KEY, {
+  const saved = readJSON<Credentials>('session', SESSION_KEY, {
     room: '',
     token: '',
+    transport: 'relay',
   });
-  if (saved.room && saved.token && (!fromUrl || fromUrl === saved.room)) return saved;
+  if (saved.room && saved.token && (!room || room === saved.room)) return saved;
   return null;
 }
 
 class ControllerApp {
   private phase: Phase = 'connecting';
-  private socket: RelaySocket<ControllerInbound, ControllerToHost> | null = null;
+  private socket: Link<ControllerToHost> | null = null;
   private processor: TiltProcessor;
   private sensors: SensorSource | null = null;
   private settings: ControllerSettings = loadSettings();
@@ -88,11 +98,8 @@ class ControllerApp {
       );
       return;
     }
-    this.socket = new RelaySocket<ControllerInbound, ControllerToHost>({
-      role: 'controller',
-      room: creds.room,
-      token: creds.token,
-      onMessage: (m) => this.onMessage(m),
+    this.socket = connectController(creds.transport, creds.room, creds.token, {
+      onMessage: (m: ControllerInbound) => this.onMessage(m),
       onStatus: (s, code) => this.onSocketStatus(s, code),
     });
     document.addEventListener('visibilitychange', this.onVisibility);

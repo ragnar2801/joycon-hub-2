@@ -185,10 +185,35 @@ export interface ConfigResponse {
   lanAddresses: string[];
 }
 
-/** Path the QR code points to. */
-export function controllerPath(roomCode: string, controllerToken: string): string {
-  return `/c/${encodeURIComponent(roomCode)}?t=${encodeURIComponent(controllerToken)}`;
+/**
+ * How the phone and the hub talk:
+ * - `relay`: both connect to the JoyCon Hub Node server over WebSockets (dev server, Docker).
+ * - `p2p`: direct WebRTC data channel, brokered by a PeerJS signalling server. Needs no backend
+ *   of our own, so the hub can be hosted as static files (GitHub Pages).
+ */
+export type TransportKind = 'relay' | 'p2p';
+
+/**
+ * Relative URL the QR code points to (resolved against the hub page's URL, so it also works
+ * when the site lives in a sub-folder such as https://user.github.io/Joyconhub/).
+ */
+export function controllerPath(
+  roomCode: string,
+  controllerToken: string,
+  transport: TransportKind = 'relay',
+): string {
+  const q = new URLSearchParams({ r: roomCode, t: controllerToken });
+  if (transport !== 'relay') q.set('m', transport);
+  return `controller.html?${q.toString()}`;
 }
+
+/** PeerJS id of a hub in p2p mode. Knowing it (from the QR code) is what lets a phone join. */
+export function p2pPeerId(roomCode: string, controllerToken: string): string {
+  return `joyconhub-v1-${roomCode}-${controllerToken}`;
+}
+
+/** Message the hub sends a controller it is dropping because another phone took over (p2p mode). */
+export const REPLACED_NOTICE = '__replaced';
 
 export function wsQuery(role: Role, room: string, token: string): string {
   const q = new URLSearchParams({ role, room, token });

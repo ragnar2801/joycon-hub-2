@@ -63,8 +63,6 @@ export async function buildApp(opts: AppOptions = {}): Promise<App> {
 
   if (opts.staticDir && existsSync(opts.staticDir)) {
     await fastify.register(fastifyStatic, { root: opts.staticDir, index: 'index.html' });
-    fastify.get('/c/:code', (_req, reply) => reply.sendFile('controller.html'));
-    fastify.get('/c', (_req, reply) => reply.sendFile('controller.html'));
   }
 
   const relay = createRelay(registry, fastify.log);

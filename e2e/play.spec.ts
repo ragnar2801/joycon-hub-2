@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Browser, type Page } from '@playwright/test';
+import { RELAY_BASE, STATIC_BASE } from './ports.ts';
 
 interface HubDebug {
   phase(): string;
@@ -53,17 +54,19 @@ test('hub home lists games', async ({ page }) => {
   await expect(page.getByRole('button', { name: /Marble Maze/ })).toBeDisabled();
 });
 
-test('phone pairs through the QR link and flies the plane', async ({ browser }) => {
-  test.setTimeout(120_000);
+async function playFullRound(browser: Browser, hubUrl: string, opts: { p2p: boolean }) {
   const hubCtx = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   const hub = await hubCtx.newPage();
-  await hub.goto('/?debug=1');
+  await hub.goto(hubUrl);
   await hub.getByRole('button', { name: /Sky Tilt/ }).click();
 
   const link = hub.getByTestId('pair-url');
-  await expect(link).toHaveAttribute('href', /\/c\/[A-Z2-9]{4}\?t=/);
+  await expect(link).toHaveAttribute('href', /controller\.html\?r=[A-Z2-9]{4}&t=/);
   await expect(hub.locator('.qr svg')).toBeVisible();
   const href = new URL((await link.getAttribute('href'))!);
+  expect(href.searchParams.get('m')).toBe(opts.p2p ? 'p2p' : null);
+  // The QR points at this machine's LAN address; the test phone uses localhost instead.
+  const phoneUrl = new URL(href.pathname + href.search, hubUrl).href;
 
   const phoneCtx = await browser.newContext({
     viewport: { width: 844, height: 390 },
@@ -71,9 +74,9 @@ test('phone pairs through the QR link and flies the plane', async ({ browser }) 
     hasTouch: true,
   });
   const phone = await phoneCtx.newPage();
-  await phone.goto(href.pathname + href.search);
+  await phone.goto(phoneUrl);
   // The token is moved out of the address bar.
-  await expect(phone).toHaveURL(/\/c\/[A-Z2-9]{4}$/);
+  await expect(phone).toHaveURL(/controller\.html\?r=[A-Z2-9]{4}$/);
   await startFakeSensors(phone);
 
   await expect.poll(async () => (await hubState(hub)).connected).toBe(true);
@@ -135,19 +138,38 @@ test('phone pairs through the QR link and flies the plane', async ({ browser }) 
 
   // Losing the phone pauses the game and shows the QR code again.
   await phoneCtx.close();
-  await expect.poll(async () => (await hubState(hub)).phase).toBe('paused');
+  await expect.poll(async () => (await hubState(hub)).phase, { timeout: 15_000 }).toBe('paused');
   await expect(hub.getByRole('heading', { name: 'Phone disconnected' })).toBeVisible();
   await expect(hub.locator('.overlay .qr svg')).toBeVisible();
 
   await hubCtx.close();
+}
+
+test('relay server: phone pairs through the QR link and flies the plane', async ({ browser }) => {
+  test.setTimeout(120_000);
+  await playFullRound(browser, `${RELAY_BASE}?debug=1`, { p2p: false });
+});
+
+test('static hosting (GitHub Pages): phone pairs peer-to-peer and flies the plane', async ({
+  browser,
+}) => {
+  test.setTimeout(120_000);
+  await playFullRound(browser, `${STATIC_BASE}?debug=1&transport=p2p`, { p2p: true });
+});
+
+test('static hosting: stale QR code tells the phone the session ended', async ({ page }) => {
+  await page.goto(`${STATIC_BASE}controller.html?r=ABCD&t=nothere123&m=p2p`);
+  await expect(page.getByRole('heading', { name: 'Game session ended' })).toBeVisible({
+    timeout: 15_000,
+  });
 });
 
 test('controller without credentials explains what to do', async ({ page }) => {
-  await page.goto('/c');
+  await page.goto('/controller.html');
   await expect(page.getByRole('heading', { name: 'Scan the QR code' })).toBeVisible();
 });
 
 test('controller with an expired room says so', async ({ page }) => {
-  await page.goto('/c/ABCD?t=nope');
+  await page.goto('/controller.html?r=ABCD&t=nope');
   await expect(page.getByRole('heading', { name: 'Game session ended' })).toBeVisible();
 });
