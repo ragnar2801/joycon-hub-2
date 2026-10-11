@@ -26,6 +26,7 @@ export class KeyboardInput {
         boost: k.has('ShiftLeft') || k.has('ShiftRight') || k.has('Space'),
         brake: k.has('ArrowDown') || k.has('KeyS'),
         recover: k.has('Space'),
+        fire: k.has('KeyF'),
       },
       connected: true,
     };

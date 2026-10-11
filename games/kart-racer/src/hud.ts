@@ -18,6 +18,7 @@ export class RaceHud {
     debug: boolean,
     restart: () => void,
     pause: () => void,
+    fire: (held: boolean) => void,
   ) {
     this.root.className = 'kr-hud';
     this.endZ = track.points.at(-1)!.z;
@@ -40,6 +41,11 @@ export class RaceHud {
       </header>
       <div class="kr-progress" role="progressbar" aria-label="Escape progress" aria-valuemin="0" aria-valuemax="100"><i data-value="progress"></i></div>
       <div class="kr-notice" data-value="notice" role="status" aria-live="polite"></div>
+      <div class="kr-combat"><span>KART HEALTH <strong data-value="health">100%</strong></span>
+        <div class="kr-health-track" role="progressbar" aria-label="Kart health" aria-valuemin="0" aria-valuemax="100"><i data-value="healthbar"></i></div>
+        <small data-value="destroyed">0 blockages cleared</small>
+      </div>
+      <button class="kr-fire" aria-label="Fire blaster" disabled><strong>✦ FIRE</strong><span>HOLD TO BLAST</span><i data-value="weapon"></i></button>
       <div class="kr-message" hidden role="status" aria-live="polite"><div>
         <span data-value="eyebrow">READY TO ROLL?</span><h1 data-value="heading">3</h1>
         <p data-value="detail">Hold your phone like a steering wheel.</p>
@@ -50,7 +56,7 @@ export class RaceHud {
           <div class="kr-speed-track"><i data-value="speedbar"></i></div><small data-value="handling">Auto acceleration</small>
         </div>
         <div class="kr-guide"><span class="kr-wheel" data-value="wheel">◉</span><div><strong>Tilt to steer</strong>
-          <small>${debug ? 'A / D or ← / → · S / ↓ brake · Space recover' : 'Hold Brake for corners · Back on track to recover'}</small></div></div>
+          <small>${debug ? 'A / D steer · F fire · S brake · Space recover' : 'Hold Fire to blast · Brake for corners'}</small></div></div>
         <div class="kr-map"><span>ESCAPE ROUTE</span><svg viewBox="0 0 170 136" role="img" aria-label="Escape route, safe zone, and your position">
           <polyline points="${path}" fill="none" stroke="#d9e8dc" stroke-width="13" stroke-linejoin="round" />
           <polyline points="${path}" fill="none" stroke="#8ca9a1" stroke-width="5" stroke-linejoin="round" />
@@ -65,6 +71,16 @@ export class RaceHud {
     this.dot = this.root.querySelector('.kr-map-dot')!;
     this.root.querySelector<HTMLButtonElement>('.kr-restart')!.onclick = restart;
     this.root.querySelector<HTMLButtonElement>('.kr-pause')!.onclick = pause;
+    const fireButton = this.root.querySelector<HTMLButtonElement>('.kr-fire')!;
+    fireButton.onpointerdown = (event) => {
+      event.preventDefault();
+      fireButton.setPointerCapture(event.pointerId);
+      fire(true);
+    };
+    fireButton.onpointerup =
+      fireButton.onpointercancel =
+      fireButton.onlostpointercapture =
+        () => fire(false);
     container.appendChild(this.root);
   }
 
@@ -79,6 +95,10 @@ export class RaceHud {
     z: number;
     handling: string;
     notice: string;
+    health: number;
+    destroyed: number;
+    weapon: number;
+    active: boolean;
   }): void {
     this.values.distance!.textContent =
       data.distance >= 1000
@@ -95,6 +115,13 @@ export class RaceHud {
     this.values.speedbar!.style.width = `${Math.min(data.speed / 27, 1) * 100}%`;
     this.values.wheel!.style.transform = `rotate(${data.steering * 65}deg)`;
     this.values.handling!.textContent = data.handling;
+    this.values.health!.textContent = `${data.health}%`;
+    this.values.healthbar!.style.width = `${data.health}%`;
+    this.values.healthbar!.classList.toggle('urgent', data.health <= 30);
+    this.root.querySelector('.kr-health-track')!.setAttribute('aria-valuenow', String(data.health));
+    this.values.destroyed!.textContent = `${data.destroyed} blockages cleared`;
+    this.values.weapon!.style.transform = `scaleX(${data.weapon})`;
+    this.root.querySelector<HTMLButtonElement>('.kr-fire')!.disabled = !data.active;
     if (this.values.notice!.textContent !== data.notice)
       this.values.notice!.textContent = data.notice;
     this.values.notice!.classList.toggle('visible', !!data.notice);

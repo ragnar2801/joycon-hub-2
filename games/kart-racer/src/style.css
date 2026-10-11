@@ -146,6 +146,87 @@
 .kr-stats strong.urgent {
   color: #cf654b;
 }
+.kr-combat {
+  position: absolute;
+  left: 28px;
+  top: 140px;
+  width: 180px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: #fffdf0ed;
+  border: 1px solid #fff;
+}
+.kr-combat > span {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  letter-spacing: 1px;
+  font-weight: 750;
+}
+.kr-combat small {
+  font-size: 10px;
+  color: #718b7e;
+}
+.kr-health-track {
+  height: 5px;
+  background: #e5eadd;
+  border-radius: 5px;
+  overflow: hidden;
+  margin: 9px 0 5px;
+}
+.kr-health-track i {
+  display: block;
+  height: 100%;
+  background: #83b8ab;
+}
+.kr-health-track i.urgent {
+  background: #ed8065;
+}
+.kr-fire {
+  pointer-events: auto;
+  position: absolute;
+  right: 28px;
+  bottom: 260px;
+  width: 120px;
+  height: 90px;
+  background: #ed9275;
+  color: #fff;
+  border: 3px solid #fff8;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 6px 0 #c56f57;
+}
+.kr-fire strong {
+  display: block;
+  font-size: 21px;
+}
+.kr-fire span {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  margin-top: 4px;
+}
+.kr-fire i {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: #fff9;
+  transform-origin: left;
+}
+.kr-fire:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #c56f57;
+}
+.kr-fire:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.kr-fire:focus-visible {
+  outline: 3px solid #315451;
+  outline-offset: 4px;
+}
 .kr-notice.visible {
   opacity: 1;
   transform: translate(-50%, 0);
@@ -346,7 +427,7 @@
   border: 1px solid #fff;
 }
 .kr-view .debug-panel {
-  top: 180px;
+  top: 230px;
   bottom: auto;
   left: 16px;
   background: #fffdf0dd;
@@ -482,10 +563,23 @@
 }
 @media (max-height: 500px) {
   .kr-view .debug-panel {
-    top: 130px;
-    font-size: 8px;
-    line-height: 1.1;
-    padding: 6px;
+    display: none;
+  }
+  .kr-combat {
+    top: 123px;
+    left: 16px;
+    width: 150px;
+    padding: 9px 12px;
+  }
+  .kr-fire {
+    right: 16px;
+    bottom: 190px;
+    width: 95px;
+    height: 65px;
+    border-radius: 16px;
+  }
+  .kr-fire strong {
+    font-size: 17px;
   }
   .kr-top {
     top: 10px;

@@ -113,7 +113,9 @@ Use the on-screen pause button or pause on your phone. After escaping or running
 
 For keyboard play, open `/?game=kart-racer&debug=1` and choose **Play with keyboard**. Use **A/D** or **Left/Right** to steer, **S** or **Down** to brake, **Space** to recover, and **Esc** to pause.
 
-This is Phase 1 of the combat escape game: car handling, gyro controls, escape route, and round lifecycle. Phase 2 will add firing and destructible blockages; Phase 3 will add enemy cars trying to stop your escape.
+Hold **Fire** on your phone or the game screen to blast blockages. Keyboard players can hold **F**. Wooden crates take one shot; coral barricades take two. Every blockage row leaves a lane open, so you can also steer around them. Blockage collisions damage your kart and cost speed; barrier bumps cause minor damage. The HUD shows kart health, blockages cleared, and blaster readiness. Running out of health ends the escape. Restart restores all blockages and your health.
+
+Phases 1 and 2 are complete: driving, the escape route, firing, destructible blockages, and kart health. Phase 3 will add enemy cars trying to stop your escape.
 
 ## Repository layout
 

@@ -10,6 +10,7 @@ export const kartRacerMeta: Omit<GameDefinition, 'load'> = {
   icon: '🏁',
   controllerLayout: {
     buttons: [
+      { id: 'fire', label: 'Fire' },
       { id: 'brake', label: 'Brake' },
       { id: 'recover', label: 'Back on track' },
     ],

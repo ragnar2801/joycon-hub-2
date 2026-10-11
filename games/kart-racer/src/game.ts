@@ -4,6 +4,7 @@ import { EscapeRoute } from './track.ts';
 import { createKart, driveKart, smooth } from './driving.ts';
 import { buildKart, buildScenery, disposeScene } from './scene.ts';
 import { RaceHud, timeLabel } from './hud.ts';
+import { Battlefield } from './combat.ts';
 
 const BEST_KEY = 'joyconhub:kart-racer:best-escape-time';
 const TIME_LIMIT = 100;
@@ -28,6 +29,7 @@ export class KartRacerGame implements MiniGame {
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera(60, 1, 0.1, 750);
   private track = new EscapeRoute();
+  private combat = new Battlefield(this.track);
   private sun = new THREE.DirectionalLight(0xfff4dc, 2.2);
   private model = buildKart();
   private kart = createKart(this.track);
@@ -45,6 +47,10 @@ export class KartRacerGame implements MiniGame {
   private hitCooldown = 0;
   private recoverHeld = false;
   private nextBroadcast = 0;
+  private health = 100;
+  private damageCooldown = 0;
+  private destroyed = 0;
+  private fireHeld = false;
 
   mount(container: HTMLElement, ctx: GameContext): void {
     this.ctx = ctx;
@@ -88,13 +94,16 @@ export class KartRacerGame implements MiniGame {
     });
     sun.shadow.bias = -0.0004;
     sun.shadow.normalBias = 0.05;
-    this.scene.add(sun, sun.target, buildScenery(this.track), this.model.root);
+    this.scene.add(sun, sun.target, buildScenery(this.track), this.model.root, this.combat.group);
     this.hud = new RaceHud(
       this.root,
       this.track,
       ctx.debug,
       () => (ctx.restart ? ctx.restart() : this.restart()),
       () => ctx.pause?.(),
+      (held) => {
+        this.fireHeld = held;
+      },
     );
     this.observer = new ResizeObserver(() => this.resize());
     this.observer.observe(this.root);
@@ -109,13 +118,17 @@ export class KartRacerGame implements MiniGame {
     this.elapsed = this.nextBroadcast = this.hitCooldown = 0;
     this.checkpoint = 1;
     this.paused = this.recoverHeld = false;
+    this.fireHeld = false;
+    this.health = 100;
+    this.damageCooldown = this.destroyed = 0;
+    this.combat.reset();
     this.notice = '';
     this.noticeTime = 0;
     this.syncModel(0);
     this.placeCamera(1, true);
     this.hud?.show(
       '3',
-      'Tilt to steer. Reach the safe zone before time runs out.',
+      'Tilt to steer. Hold Fire to blast blockages on your way to safety.',
       'MAKE YOUR ESCAPE',
     );
     this.updateHud();
@@ -137,7 +150,7 @@ export class KartRacerGame implements MiniGame {
       } else
         this.hud?.show(
           String(Math.ceil(this.countdown)),
-          'Tilt to steer. Reach the safe zone before time runs out.',
+          'Tilt to steer. Hold Fire to blast blockages on your way to safety.',
           'MAKE YOUR ESCAPE',
         );
     } else if (this.phase === 'racing') {
@@ -152,6 +165,7 @@ export class KartRacerGame implements MiniGame {
 
   pause(): void {
     this.paused = true;
+    this.fireHeld = false;
   }
   resume(): void {
     this.paused = false;
@@ -163,6 +177,7 @@ export class KartRacerGame implements MiniGame {
     disposeScene(this.scene);
     // The kart is allocated before mounting; also release it if WebGL creation failed.
     if (!this.model.root.parent) disposeScene(this.model.root);
+    if (!this.combat.group.parent) disposeScene(this.combat.group);
     this.renderer?.dispose();
     this.renderer?.forceContextLoss();
     this.root?.remove();
@@ -179,6 +194,8 @@ export class KartRacerGame implements MiniGame {
         Math.max(20, (this.checkpoint - 1) * CHECKPOINT_SPACING + 2),
       );
       this.elapsed += 3;
+      this.combat.clearShots();
+      this.fireHeld = false;
       this.notify('Back on track · +3 seconds', 3);
       this.ctx.emit({ kind: 'hit', message: this.notice, vibrate: [45] });
       this.syncModel(0);
@@ -189,16 +206,30 @@ export class KartRacerGame implements MiniGame {
     const previousZ = this.kart.z;
     const wasOffRoad = this.kart.offRoad;
     const hit = driveKart(this.kart, input, this.track, dt);
+    this.damageCooldown = Math.max(0, this.damageCooldown - dt);
+    const blasts = this.combat.update(
+      dt,
+      this.kart,
+      input.connected && (!!input.buttons.fire || this.fireHeld),
+    );
+    for (const blast of blasts) {
+      if (!blast.destroyed) continue;
+      this.destroyed++;
+      this.notify('Blockage blasted! Keep moving.', 1.2);
+      this.ctx.emit({ kind: 'score', message: 'Blockage blasted', vibrate: [20] });
+    }
+    const block = this.combat.blockCollision(this.kart);
+    if (block) this.damage(22, 'Blockage hit · steer around it or hold Fire');
+    else if (hit) this.damage(5, 'Barrier bump! Ease into the turn.');
+    if (this.phase === 'finished') return;
     this.elapsed += dt;
     if (this.elapsed >= TIME_LIMIT) {
       this.elapsed = TIME_LIMIT;
       this.finish(false);
       return;
     }
-    if (hit && this.hitCooldown === 0) {
+    if (hit) {
       this.hitCooldown = 0.65;
-      this.notify('Barrier bump! Ease into the turn.', 1.7);
-      this.ctx.emit({ kind: 'hit', message: 'Barrier bump', vibrate: [70] });
     } else if (this.kart.offRoad && !wasOffRoad && this.hitCooldown === 0) {
       this.notify('On the shoulder · steer back onto the road', 2);
       this.ctx.emit({ kind: 'hit', vibrate: [20] });
@@ -230,9 +261,14 @@ export class KartRacerGame implements MiniGame {
     }
   }
 
-  private finish(escaped: boolean): void {
+  private finish(
+    escaped: boolean,
+    reason = 'The safe zone closed before you arrived. Try again and keep moving.',
+  ): void {
     this.phase = 'finished';
     this.kart.speed = 0;
+    this.fireHeld = false;
+    this.combat.clearShots();
     const score = Math.round(this.elapsed * 1000);
     const record = escaped && (this.best === 0 || score < this.best);
     if (record) {
@@ -245,10 +281,10 @@ export class KartRacerGame implements MiniGame {
     }
     this.noticeTime = 0;
     this.hud?.show(
-      escaped ? 'Escaped!' : 'Time’s up',
+      escaped ? 'Escaped!' : this.health === 0 ? 'Kart wrecked' : 'Time’s up',
       escaped
         ? `Safe zone reached in ${timeLabel(score)}. ${record ? 'Your fastest escape!' : 'You made it.'}`
-        : 'The safe zone closed before you arrived. Try again and keep moving.',
+        : reason,
       escaped ? 'YOU MADE IT TO SAFETY' : 'ESCAPE FAILED',
       true,
     );
@@ -256,9 +292,26 @@ export class KartRacerGame implements MiniGame {
       kind: 'gameover',
       score,
       best: this.best,
-      message: escaped ? 'Safe zone reached' : 'Escape failed — time ran out',
+      message: escaped
+        ? 'Safe zone reached'
+        : this.health === 0
+          ? 'Escape failed — kart wrecked'
+          : 'Escape failed — time ran out',
       vibrate: [100, 70, 100],
     });
+  }
+
+  private damage(amount: number, message: string): void {
+    if (this.damageCooldown > 0) return;
+    this.health = Math.max(0, this.health - amount);
+    this.damageCooldown = 1.1;
+    this.notify(message, 2);
+    this.ctx.emit({ kind: 'hit', message, vibrate: [90] });
+    if (this.health === 0)
+      this.finish(
+        false,
+        'Your kart took too much damage. Blast the blockages or steer around them.',
+      );
   }
 
   private notify(message: string, duration: number): void {
@@ -269,6 +322,10 @@ export class KartRacerGame implements MiniGame {
   private syncModel(dt: number): void {
     const k = this.kart;
     this.model.root.position.set(k.x, 0.035, k.z);
+    this.model.root.visible =
+      this.phase !== 'racing' ||
+      this.damageCooldown < 0.6 ||
+      Math.floor(this.damageCooldown * 15) % 2 === 0;
     this.sun.position.set(k.x + 60, 100, k.z + 70);
     this.sun.target.position.set(k.x, 0, k.z);
     this.model.root.rotation.set(
@@ -319,6 +376,10 @@ export class KartRacerGame implements MiniGame {
       steering: k.steering,
       x: k.x,
       z: k.z,
+      health: this.health,
+      destroyed: this.destroyed,
+      weapon: this.combat.ready,
+      active: this.phase === 'racing' && !this.paused,
       handling:
         this.phase === 'finished'
           ? 'Run complete'

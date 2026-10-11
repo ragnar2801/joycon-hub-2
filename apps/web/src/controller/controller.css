@@ -322,6 +322,22 @@ html[data-controller-theme='light'] .toast {
     0 2px 0 #b3203d,
     0 6px 14px rgba(0, 0, 0, 0.4);
 }
+.actions[data-count='3'] .action-btn {
+  width: clamp(64px, 22vmin, 94px);
+  height: clamp(64px, 22vmin, 94px);
+  flex-shrink: 0;
+  font-size: 14px;
+}
+html[data-controller-theme='light'] .actions[data-count='3'] .action-btn:last-child {
+  color: #315451;
+  background: #fffaf0;
+  box-shadow:
+    0 7px 0 #c2d0be,
+    0 12px 24px #3559571a;
+}
+html[data-controller-theme='light'] .actions[data-count='3'] .action-btn:last-child.pressed {
+  box-shadow: 0 1px 0 #c2d0be;
+}
 
 @media (orientation: portrait) {
   .calibrate {

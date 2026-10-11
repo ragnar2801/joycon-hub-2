@@ -488,6 +488,7 @@ class ControllerApp {
   private renderPlayControls(): void {
     const actions = this.els.actions;
     if (!actions) return;
+    actions.dataset.count = String(this.layout.buttons.length);
     actions.innerHTML = this.layout.buttons
       .map(
         (b, i) => `<button class="action-btn" data-button="${i}">${escapeHtml(b.label)}</button>`,
