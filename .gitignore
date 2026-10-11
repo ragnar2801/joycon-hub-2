@@ -9,4 +9,3 @@ playwright-report/
 !.env.example
 certs/
 .DS_Store
-dsa/out/

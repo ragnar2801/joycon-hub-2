@@ -175,10 +175,6 @@ docker run -p 8080:8080 joyconhub
 - **Controller:** iOS Safari 13+ (asks for motion permission), Android Chrome. Phones without motion sensors get touch controls. iPhones have no vibration API, so they get a screen flash instead.
 - **Hub:** current Chrome, Edge, Firefox or Safari with WebGL.
 
-## DSA preparation
-
-The [`dsa/`](dsa/README.md) folder is separate from the game. It holds a Java study plan for coding interviews, with solved and tested classic problems across 15 topics. Run `sh dsa/run-tests.sh` (JDK 17+).
-
 ## Troubleshooting
 
 | Problem                                                                         | Fix                                                                                                                               |
