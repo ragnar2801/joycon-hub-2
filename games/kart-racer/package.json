@@ -1,0 +1,14 @@
+{
+  "name": "@joyconhub/kart-racer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./meta": "./src/meta.ts"
+  },
+  "dependencies": {
+    "@joyconhub/game-sdk": "workspace:*",
+    "three": "^0.180.0"
+  }
+}

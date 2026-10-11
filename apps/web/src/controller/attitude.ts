@@ -31,7 +31,14 @@ export class AttitudeIndicator {
    * @param rollN normalised roll -1..1 (for the stick dot)
    * @param pitchN normalised pitch -1..1
    */
-  draw(rollDeg: number, pitchDeg: number, rollN: number, pitchN: number, active: boolean): void {
+  draw(
+    rollDeg: number,
+    pitchDeg: number,
+    rollN: number,
+    pitchN: number,
+    active: boolean,
+    wheel = false,
+  ): void {
     this.fit();
     const { ctx, w, h } = this;
     if (!w || !h) return;
@@ -39,6 +46,39 @@ export class AttitudeIndicator {
     const cx = w / 2;
     const cy = h / 2;
     ctx.clearRect(0, 0, w, h);
+
+    if (wheel) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.fillStyle = '#fffaf0';
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.rotate((rollN * Math.PI) / 2.4);
+      ctx.strokeStyle = active ? '#557b70' : '#acbdb2';
+      ctx.lineWidth = r * 0.13;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.7, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.lineWidth = r * 0.09;
+      ctx.beginPath();
+      for (const a of [0, Math.PI, Math.PI / 2]) {
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(a) * r * 0.65, Math.sin(a) * r * 0.65);
+      }
+      ctx.stroke();
+      ctx.fillStyle = '#ed9275';
+      ctx.beginPath();
+      ctx.arc(0, -r * 0.7, r * 0.085, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ed9275';
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
 
     ctx.save();
     ctx.beginPath();

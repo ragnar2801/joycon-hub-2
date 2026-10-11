@@ -73,6 +73,7 @@ class ControllerApp {
   private hostState: HostState = 'pairing';
   private score = 0;
   private best = 0;
+  private resultMessage = '';
   private calibrated = false;
   private throttle = 0.6;
   private buttons = 0;
@@ -159,6 +160,7 @@ class ControllerApp {
       case 'layout':
         this.layout = msg.layout;
         this.gameTitle = msg.gameTitle;
+        document.documentElement.dataset.controllerTheme = msg.layout.theme ?? 'dark';
         this.renderPlayControls();
         break;
       case 'host_state':
@@ -168,7 +170,11 @@ class ControllerApp {
         break;
       case 'game_event':
         if (msg.score !== undefined) this.score = msg.score;
-        if (msg.kind === 'start') this.score = 0;
+        if (msg.kind === 'start') {
+          this.score = 0;
+          this.resultMessage = '';
+        }
+        if (msg.kind === 'gameover') this.resultMessage = msg.message ?? '';
         this.feedback(msg.kind, msg.vibrate, msg.message);
         break;
       default:
@@ -649,7 +655,15 @@ class ControllerApp {
         <div class="row"><button class="btn" data-action="restart">Restart</button><button class="btn" data-action="calibrate">Recenter</button><button class="btn" data-action="quit">Quit game</button></div>`;
     } else if (this.phase === 'play' && this.hostState === 'gameover') {
       const timeTrial = this.layout.scoreFormat === 'time';
-      html = `<h1>${timeTrial ? 'Race complete!' : 'Game over'}</h1><p>${timeTrial ? 'Time' : 'Score'} <b>${timeTrial ? this.formatTime(this.score) : this.score}</b> · Best <b>${timeTrial ? this.formatTime(this.best) : this.best}</b></p>
+      const escape = this.layout.indicator === 'wheel';
+      const title = escape
+        ? this.resultMessage === 'Safe zone reached'
+          ? 'Escaped!'
+          : 'Run ended'
+        : timeTrial
+          ? 'Race complete!'
+          : 'Game over';
+      html = `<h1>${title}</h1>${escape ? `<p>${escapeHtml(this.resultMessage)}</p>` : ''}<p>${timeTrial ? 'Time' : 'Score'} <b>${timeTrial ? this.formatTime(this.score) : this.score}</b> · Best <b>${timeTrial ? (this.best ? this.formatTime(this.best) : '—') : this.best}</b></p>
         <div class="row"><button class="btn primary big-btn" data-action="restart" data-testid="play-again">Play again</button></div>
         <div class="row"><button class="btn" data-action="quit">Back to games</button></div>`;
     }
@@ -730,9 +744,23 @@ class ControllerApp {
     requestAnimationFrame(this.frame);
     const o = this.processor.output;
     if (this.phase === 'calibrate')
-      this.calIndicator.draw(o.rollDeg, o.pitchDeg, o.roll, o.pitch, this.processor.hasSample);
+      this.calIndicator.draw(
+        o.rollDeg,
+        o.pitchDeg,
+        o.roll,
+        o.pitch,
+        this.processor.hasSample,
+        this.layout.indicator === 'wheel',
+      );
     else if (this.phase === 'play') {
-      this.playIndicator.draw(o.rollDeg, o.pitchDeg, o.roll, o.pitch, true);
+      this.playIndicator.draw(
+        o.rollDeg,
+        o.pitchDeg,
+        o.roll,
+        o.pitch,
+        true,
+        this.layout.indicator === 'wheel',
+      );
       this.updateTop();
     }
   };

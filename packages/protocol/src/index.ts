@@ -100,6 +100,8 @@ export type ButtonSpec = z.infer<typeof ButtonSpec>;
 export const ControllerLayout = z.object({
   buttons: z.array(ButtonSpec).max(4),
   showThrottle: z.boolean(),
+  theme: z.enum(['light', 'dark']).optional(),
+  indicator: z.enum(['horizon', 'wheel']).optional(),
   /** Time-trial scores are milliseconds, and a lower best is better. */
   scoreFormat: z.enum(['points', 'time']).optional(),
 });

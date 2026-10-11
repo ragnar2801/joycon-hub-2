@@ -42,6 +42,9 @@ export interface GameContext {
   emit(event: GameEvent): void;
   /** Debug overlays requested (?debug=1). */
   debug: boolean;
+  /** Optional host actions for in-game buttons; keep session and controller state in sync. */
+  restart?(): void;
+  pause?(): void;
 }
 
 export interface MiniGame {

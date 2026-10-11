@@ -269,6 +269,8 @@ export class GameSession {
       input: () => this.input(),
       emit: (e) => this.onGameEvent(e),
       debug: this.host.debug,
+      restart: () => this.restart(),
+      pause: () => this.pause('user'),
     });
     this.sendState();
     this.lastFrame = performance.now();

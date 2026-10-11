@@ -2,7 +2,7 @@
 
 A browser gaming hub where **your phone is the controller**. Open the hub on a computer or TV, scan the QR code with your phone, and tilt to play. There's no app to install and no sign-up.
 
-Play **Sky Tilt**, a low-poly flight game, or **Tilt Racer**, a sunny top-down time trial. The phone's motion sensors (accelerometer and gyroscope) supply the input.
+Play **Sky Tilt**, a low-poly flight game, **Tilt Racer**, a sunny top-down time trial, or **Sunny Escape**, a 3D kart escape game. The phone's motion sensors (accelerometer and gyroscope) supply the input.
 
 **Play it:** https://sunilkumarsunil35.github.io/Joyconhub/ (after the one-time GitHub Pages setup below).
 
@@ -103,6 +103,18 @@ Finish three laps to record your time. The HUD shows speed, lap, race time, and 
 
 For keyboard play, open `/?game=tilt-racer&debug=1` and choose **Play with keyboard**. Use **A/D** or **Left/Right** to steer, **Q/E** to adjust throttle, **Space** to recover, and **Esc** to pause.
 
+## How to play Sunny Escape
+
+Choose **Sunny Escape** in the hub, pair your phone, hold it sideways like a steering wheel, and calibrate. After the countdown, the kart accelerates automatically. Tilt left or right to steer; hold **Brake** to take corners more slowly. The phone shows a steering wheel and uses the same light theme as the game.
+
+Escape down a winding one-way route and reach the **safe zone** within **100 seconds**. The camera follows your kart, the minimap shows your position and destination, and the HUD displays speed, distance remaining, time left, and your fastest successful escape. Driving onto the shoulder slows you down; hitting a barrier bounces you back and costs speed. **Back on track** returns you just past your last checkpoint and costs three seconds. Checkpoints must be crossed in order and in the forward direction. There are no laps.
+
+Use the on-screen pause button or pause on your phone. After escaping or running out of time, choose **Try again**, tap **Play again** on your phone, or press **Enter**. Your fastest successful escape time is saved in this browser; failed runs never set a record.
+
+For keyboard play, open `/?game=kart-racer&debug=1` and choose **Play with keyboard**. Use **A/D** or **Left/Right** to steer, **S** or **Down** to brake, **Space** to recover, and **Esc** to pause.
+
+This is Phase 1 of the combat escape game: car handling, gyro controls, escape route, and round lifecycle. Phase 2 will add firing and destructible blockages; Phase 3 will add enemy cars trying to stop your escape.
+
 ## Repository layout
 
 ```
@@ -117,6 +129,7 @@ packages/
 games/
   sky-tilt/      The plane game (Three.js): flight model, streaming terrain, ring course, HUD, audio
   tilt-racer/    The light-themed car game (Canvas 2D): oval track, steering, timed laps, HUD
+  kart-racer/    Sunny Escape (Three.js): gyro kart handling, chase camera, one-way escape route
 e2e/             Playwright tests: hub page + emulated phone, over the relay AND peer-to-peer from a
                  GitHub Pages-like static sub-folder (with a local PeerJS server)
 PLAN.md          The original project plan

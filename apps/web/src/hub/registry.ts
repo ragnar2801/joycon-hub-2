@@ -1,11 +1,13 @@
 import type { GameDefinition } from '@joyconhub/game-sdk';
 import { skyTiltMeta } from '@joyconhub/sky-tilt/meta';
 import { tiltRacerMeta } from '@joyconhub/tilt-racer/meta';
+import { kartRacerMeta } from '@joyconhub/kart-racer/meta';
 
 /** Every game in the hub. Add a game: create games/<name>, then add one entry here. */
 export const GAMES: GameDefinition[] = [
   { ...skyTiltMeta, load: () => import('@joyconhub/sky-tilt') },
   { ...tiltRacerMeta, load: () => import('@joyconhub/tilt-racer') },
+  { ...kartRacerMeta, load: () => import('@joyconhub/kart-racer') },
   {
     id: 'marble-maze',
     title: 'Marble Maze',

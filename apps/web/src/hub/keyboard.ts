@@ -22,7 +22,11 @@ export class KeyboardInput {
       pitch: axis(['ArrowDown', 'KeyS'], ['ArrowUp', 'KeyW']),
       yawRate: 0,
       throttle: this.throttle,
-      buttons: { boost: k.has('ShiftLeft') || k.has('ShiftRight') || k.has('Space') },
+      buttons: {
+        boost: k.has('ShiftLeft') || k.has('ShiftRight') || k.has('Space'),
+        brake: k.has('ArrowDown') || k.has('KeyS'),
+        recover: k.has('Space'),
+      },
       connected: true,
     };
   }
