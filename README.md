@@ -107,6 +107,12 @@ For keyboard play, open `/?game=tilt-racer&debug=1` and choose **Play with keybo
 
 Choose **Sunny Escape** in the hub, pair your phone, hold it sideways like a steering wheel, and calibrate. After the countdown, the kart accelerates automatically. Tilt left or right to steer; hold **Brake** to take corners more slowly. The phone shows a steering wheel and uses the same light theme as the game.
 
+For a **drift**, hold **Brake / Drift** while turning at road speed. Keep turning until the drift meter turns gold (about 0.65 seconds), then release Brake for a short speed boost. Charging almost the whole meter earns a longer boost. Braking without turning still slows the kart normally. Going onto the shoulder, hitting an obstacle, or recovering cancels your drift and boost. Drifts leave tire smoke and skid marks; boosts light up the exhaust.
+
+Collect road pickups by driving through them: green **+ repair kits** restore up to 30 health, blue **diamond shields** prevent collision damage for six seconds, and gold **chevron boost pads** grant a 1.5-second boost. Shields do not prevent the collision's slowdown. Each pickup can be collected once per run; repair kits stay available when health is full. Restart restores every pickup, while recovery clears your shield and boost.
+
+Engine revs, tire skids, blaster shots, impacts, pickup chimes, and nearby enemy sirens play on the game screen. Click the **♪ sound button** or press **M** to mute/unmute. Sound pauses with the game; if the browser requires an audio gesture after phone pairing, click the game screen or press a key to enable it.
+
 Escape down a winding one-way route and reach the **safe zone** within **100 seconds**. The camera follows your kart, the minimap shows your position and destination, and the HUD displays speed, distance remaining, time left, and your fastest successful escape. Driving onto the shoulder slows you down; hitting a barrier bounces you back and costs speed. **Back on track** returns you just past your last checkpoint and costs three seconds. Checkpoints must be crossed in order and in the forward direction. There are no laps.
 
 Use the on-screen pause button or pause on your phone. After escaping or running out of time, choose **Try again**, tap **Play again** on your phone, or press **Enter**. Your fastest successful escape time is saved in this browser; failed runs never set a record.

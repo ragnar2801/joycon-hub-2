@@ -37,6 +37,7 @@ export class Battlefield {
   private shots: Shot[] = [];
   private bursts: Burst[] = [];
   private cooldown = 0;
+  fired = false;
 
   constructor(track: EscapeRoute) {
     const crateGeo = new THREE.BoxGeometry(2.7, 2.1, 2.4);
@@ -126,6 +127,7 @@ export class Battlefield {
   }
 
   update(dt: number, kart: KartState, firing: boolean, enemies: CombatTarget[] = []): BlastHit[] {
+    this.fired = false;
     this.cooldown = Math.max(0, this.cooldown - dt);
     if (firing && this.cooldown === 0) this.fire(kart);
     const hits: BlastHit[] = [];
@@ -211,6 +213,7 @@ export class Battlefield {
   private fire(kart: KartState): void {
     const shot = this.shots.find((s) => s.life <= 0);
     if (!shot) return;
+    this.fired = true;
     const fx = Math.sin(kart.heading);
     const fz = Math.cos(kart.heading);
     shot.mesh.position.set(kart.x + fx * 2, 1.1, kart.z + fz * 2);

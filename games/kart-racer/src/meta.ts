@@ -5,13 +5,13 @@ export const kartRacerMeta: Omit<GameDefinition, 'load'> = {
   title: 'Sunny Escape',
   tagline: 'Keep moving. Make your escape.',
   description:
-    'Tilt to steer, blast blockages and enemy cars, and escape down a winding 3D road. Make it to the safe zone!',
+    'Drift for boost, collect repairs and shields, and blast your way past enemy cars on a winding 3D escape road!',
   accent: '#eaa04a',
   icon: '🏁',
   controllerLayout: {
     buttons: [
       { id: 'fire', label: 'Fire' },
-      { id: 'brake', label: 'Brake' },
+      { id: 'brake', label: 'Brake / Drift' },
       { id: 'recover', label: 'Back on track' },
     ],
     showThrottle: false,

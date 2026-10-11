@@ -20,6 +20,7 @@ export class RaceHud {
     restart: () => void,
     pause: () => void,
     fire: (held: boolean) => void,
+    mute: () => void,
   ) {
     this.root.className = 'kr-hud';
     this.endZ = track.points.at(-1)!.z;
@@ -38,7 +39,7 @@ export class RaceHud {
           <div><span>TIME LEFT</span><strong data-value="time">1:40.00</strong></div>
           <div><span>FASTEST ESCAPE</span><strong data-value="best">—</strong></div>
         </div>
-        <button class="kr-pause" aria-label="Pause escape" title="Pause escape (Esc)">Ⅱ</button>
+        <div class="kr-actions"><button class="kr-mute" aria-label="Mute sound" aria-pressed="false" title="Mute sound (M)">♪</button><button class="kr-pause" aria-label="Pause escape" title="Pause escape (Esc)">Ⅱ</button></div>
       </header>
       <div class="kr-progress" role="progressbar" aria-label="Escape progress" aria-valuemin="0" aria-valuemax="100"><i data-value="progress"></i></div>
       <div class="kr-notice" data-value="notice" role="status" aria-live="polite"></div>
@@ -46,6 +47,7 @@ export class RaceHud {
         <div class="kr-health-track" role="progressbar" aria-label="Kart health" aria-valuemin="0" aria-valuemax="100"><i data-value="healthbar"></i></div>
         <small data-value="destroyed">0 blocks · 0 cars blasted</small>
         <small class="kr-pursuit" data-value="pursuit">Road is clear</small>
+        <small class="kr-shield" data-value="shield">Shield inactive</small>
       </div>
       <button class="kr-fire" aria-label="Fire blaster" disabled><strong>✦ FIRE</strong><span>HOLD TO BLAST</span><i data-value="weapon"></i></button>
       <div class="kr-message" hidden role="status" aria-live="polite"><div>
@@ -56,9 +58,10 @@ export class RaceHud {
       <div class="kr-bottom">
         <div class="kr-speed"><span>SPEED</span><div><strong data-value="speed">0</strong><span>km/h</span></div>
           <div class="kr-speed-track"><i data-value="speedbar"></i></div><small data-value="handling">Auto acceleration</small>
+          <div class="kr-drift-track" role="progressbar" aria-label="Drift charge" aria-valuemin="0" aria-valuemax="100"><i data-value="driftbar"></i></div><small data-value="drift">Turn + Brake to drift</small>
         </div>
         <div class="kr-guide"><span class="kr-wheel" data-value="wheel">◉</span><div><strong>Tilt to steer</strong>
-          <small>${debug ? 'A / D steer · F fire · S brake · Space recover' : 'Hold Fire to blast · Brake for corners'}</small></div></div>
+          <small>${debug ? 'A / D steer · F fire · S brake / drift · Space recover' : 'Hold Fire to blast · Turn + Brake to drift'}</small><small>Release Brake for boost · + Repair · ◇ Shield · » Boost pad</small></div></div>
         <div class="kr-map"><span>ESCAPE ROUTE</span><svg viewBox="0 0 170 136" role="img" aria-label="Escape route, safe zone, and your position">
           <polyline points="${path}" fill="none" stroke="#d9e8dc" stroke-width="13" stroke-linejoin="round" />
           <polyline points="${path}" fill="none" stroke="#8ca9a1" stroke-width="5" stroke-linejoin="round" />
@@ -75,6 +78,7 @@ export class RaceHud {
     this.enemyDots = [...this.root.querySelectorAll<SVGCircleElement>('.kr-map-enemy')];
     this.root.querySelector<HTMLButtonElement>('.kr-restart')!.onclick = restart;
     this.root.querySelector<HTMLButtonElement>('.kr-pause')!.onclick = pause;
+    this.root.querySelector<HTMLButtonElement>('.kr-mute')!.onclick = mute;
     const fireButton = this.root.querySelector<HTMLButtonElement>('.kr-fire')!;
     fireButton.onpointerdown = (event) => {
       event.preventDefault();
@@ -105,6 +109,10 @@ export class RaceHud {
     enemies: { x: number; z: number; behind: boolean }[];
     weapon: number;
     active: boolean;
+    shieldTime: number;
+    driftCharge: number;
+    drifting: boolean;
+    boostTime: number;
   }): void {
     this.values.distance!.textContent =
       data.distance >= 1000
@@ -118,9 +126,29 @@ export class RaceHud {
       .setAttribute('aria-valuenow', String(Math.round(data.progress * 100)));
     this.values.best!.textContent = data.best > 0 ? timeLabel(data.best) : '—';
     this.values.speed!.textContent = String(Math.round(data.speed * 3.6));
-    this.values.speedbar!.style.width = `${Math.min(data.speed / 27, 1) * 100}%`;
+    this.values.speedbar!.style.width = `${Math.min(data.speed / 39, 1) * 100}%`;
     this.values.wheel!.style.transform = `rotate(${data.steering * 65}deg)`;
     this.values.handling!.textContent = data.handling;
+    this.values.shield!.textContent =
+      data.shieldTime > 0
+        ? `◇ Shield · ${data.shieldTime.toFixed(1)}s`
+        : '◇ Blue pickups grant a shield';
+    this.values.shield!.classList.toggle('active', data.shieldTime > 0);
+    this.values.driftbar!.style.width = `${data.driftCharge * 100}%`;
+    this.root
+      .querySelector('.kr-drift-track')!
+      .setAttribute('aria-valuenow', String(Math.round(data.driftCharge * 100)));
+    this.values.driftbar!.classList.toggle('ready', data.driftCharge >= 0.4);
+    this.values.drift!.textContent =
+      data.boostTime > 0
+        ? `» Boost · ${data.boostTime.toFixed(1)}s`
+        : data.drifting
+          ? data.driftCharge >= 0.85
+            ? 'Super boost ready!'
+            : data.driftCharge >= 0.4
+              ? 'Boost ready · release Brake'
+              : 'Charging drift…'
+          : 'Turn + Brake to drift';
     this.values.health!.textContent = `${data.health}%`;
     this.values.healthbar!.style.width = `${data.health}%`;
     this.values.healthbar!.classList.toggle('urgent', data.health <= 30);
@@ -155,6 +183,14 @@ export class RaceHud {
     this.values.detail!.textContent = detail;
     this.values.eyebrow!.textContent = eyebrow;
     this.root.querySelector<HTMLButtonElement>('.kr-restart')!.hidden = !finished;
+  }
+
+  setMuted(muted: boolean): void {
+    const button = this.root.querySelector<HTMLButtonElement>('.kr-mute')!;
+    button.textContent = muted ? '♪̸' : '♪';
+    button.setAttribute('aria-label', muted ? 'Unmute sound' : 'Mute sound');
+    button.setAttribute('aria-pressed', String(muted));
+    button.title = muted ? 'Unmute sound (M)' : 'Mute sound (M)';
   }
 
   dispose(): void {

@@ -87,6 +87,7 @@
   color: #98aaa0;
 }
 .kr-pause,
+.kr-mute,
 .kr-restart {
   pointer-events: auto;
   border: 1px solid #ffffffb8;
@@ -95,16 +96,23 @@
   font-weight: 800;
   box-shadow: 0 6px 30px #3559570d;
 }
-.kr-pause {
+.kr-actions {
+  display: flex;
+  gap: 8px;
+}
+.kr-pause,
+.kr-mute {
   width: 46px;
   height: 46px;
   border-radius: 16px;
   font-size: 21px;
 }
-.kr-pause:hover {
+.kr-pause:hover,
+.kr-mute:hover {
   background: #fff;
 }
 .kr-pause:focus-visible,
+.kr-mute:focus-visible,
 .kr-restart:focus-visible {
   outline: 3px solid #315451;
   outline-offset: 4px;
@@ -174,6 +182,32 @@
 }
 .kr-combat .kr-pursuit.urgent {
   color: #9875b0;
+}
+.kr-combat .kr-shield {
+  display: block;
+  margin-top: 5px;
+}
+.kr-combat .kr-shield.active {
+  color: #267cad;
+  font-weight: 800;
+}
+.kr-drift-track {
+  height: 5px;
+  margin: 10px 0 5px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #e5eadd;
+}
+.kr-drift-track i {
+  display: block;
+  height: 100%;
+  background: #92b8c6;
+}
+.kr-drift-track i.ready {
+  background: #edb13f;
+}
+.kr-drift-track + small {
+  color: #936c29;
 }
 .kr-health-track {
   height: 5px;
@@ -276,6 +310,8 @@
   background: #fffdf0ed;
   font-size: 14px;
   font-weight: 650;
+  max-width: 620px;
+  line-height: 1.5;
 }
 .kr-message.finished {
   background: #e8f0e8a8;
@@ -526,6 +562,12 @@
   }
 }
 @media (max-width: 580px) {
+  .kr-notice {
+    top: 260px;
+    width: max-content;
+    font-size: 12px;
+    padding: 9px 16px;
+  }
   .kr-brand {
     font-size: 15px;
   }
@@ -546,7 +588,8 @@
   .kr-stats strong {
     font-size: 17px;
   }
-  .kr-pause {
+  .kr-pause,
+  .kr-mute {
     width: 36px;
     height: 36px;
     border-radius: 12px;
@@ -570,6 +613,16 @@
   }
 }
 @media (max-height: 500px) {
+  .kr-speed-track,
+  .kr-speed [data-value='handling'] {
+    display: none;
+  }
+  .kr-combat .kr-shield {
+    margin-top: 2px;
+  }
+  .kr-drift-track {
+    margin-top: 4px;
+  }
   .kr-view .debug-panel {
     display: none;
   }
