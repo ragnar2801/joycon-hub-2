@@ -1,0 +1,147 @@
+.tilt-racer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #e8f5fc;
+  color: #284b48;
+  font-family: 'Trebuchet MS', system-ui, sans-serif;
+}
+.tilt-racer canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.tr-hud {
+  position: absolute;
+  top: 22px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  pointer-events: none;
+}
+.tr-brand {
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: -1px;
+}
+.tr-brand small {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #658b87;
+  margin-top: 4px;
+}
+.tr-stats {
+  display: flex;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 20px;
+  background: #ffffffed;
+  box-shadow: 0 6px 24px #385c4910;
+}
+.tr-stat {
+  min-width: 94px;
+  padding: 0 12px;
+}
+.tr-stat span {
+  display: block;
+  color: #72908c;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+.tr-stat strong {
+  display: block;
+  font-size: 23px;
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
+}
+.tr-help {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: #496958;
+  pointer-events: none;
+}
+.tr-message {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.tr-message[hidden] {
+  display: none;
+}
+.tr-message > div {
+  text-align: center;
+  background: #fffffff2;
+  padding: 24px 36px;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px #2e544d16;
+  max-width: calc(100% - 32px);
+}
+.tr-message h1 {
+  color: #284b48;
+  margin: 0 0 10px;
+  font-size: 46px;
+  letter-spacing: -2px;
+}
+.tr-message p {
+  color: #65817c;
+  margin: 5px 0;
+  font-size: 14px;
+}
+@media (max-width: 720px) {
+  .tr-hud {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    gap: 8px;
+  }
+  .tr-brand {
+    font-size: 18px;
+  }
+  .tr-brand small {
+    font-size: 9px;
+    letter-spacing: 0.5px;
+  }
+  .tr-stat {
+    min-width: 0;
+    padding: 0 7px;
+  }
+  .tr-stat strong {
+    font-size: 16px;
+  }
+  .tr-stat span {
+    font-size: 8px;
+    letter-spacing: 0.5px;
+  }
+  .tr-stats {
+    padding: 9px 4px;
+    gap: 0;
+  }
+  .tr-help {
+    font-size: 11px;
+    bottom: 12px;
+  }
+}
+@media (max-width: 480px) {
+  .tr-hud {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tr-brand small {
+    display: none;
+  }
+  .tr-stat {
+    flex: 1;
+  }
+}

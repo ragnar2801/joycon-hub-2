@@ -1,9 +1,11 @@
 import type { GameDefinition } from '@joyconhub/game-sdk';
 import { skyTiltMeta } from '@joyconhub/sky-tilt/meta';
+import { tiltRacerMeta } from '@joyconhub/tilt-racer/meta';
 
 /** Every game in the hub. Add a game: create games/<name>, then add one entry here. */
 export const GAMES: GameDefinition[] = [
   { ...skyTiltMeta, load: () => import('@joyconhub/sky-tilt') },
+  { ...tiltRacerMeta, load: () => import('@joyconhub/tilt-racer') },
   {
     id: 'marble-maze',
     title: 'Marble Maze',
@@ -12,16 +14,6 @@ export const GAMES: GameDefinition[] = [
     accent: '#3fa9ff',
     icon: '🌀',
     controllerLayout: { buttons: [], showThrottle: false },
-    available: false,
-  },
-  {
-    id: 'tilt-racer',
-    title: 'Tilt Racer',
-    tagline: 'Steer like a wheel',
-    description: 'Hold your phone like a steering wheel and drift around neon tracks.',
-    accent: '#ff4d6d',
-    icon: '🏎️',
-    controllerLayout: { buttons: [], showThrottle: true },
     available: false,
   },
   {

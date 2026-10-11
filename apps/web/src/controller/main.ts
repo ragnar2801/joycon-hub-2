@@ -398,7 +398,7 @@ class ControllerApp {
           <canvas class="attitude" data-el="calCanvas"></canvas>
           <div class="copy">
             <h1>Hold it like a controller</h1>
-            <p>Turn your phone sideways and hold it with both hands in a comfortable position. That pose will mean “fly straight”.</p>
+            <p>Turn your phone sideways and hold it with both hands in a comfortable position. That pose will mean “steer straight”.</p>
             <button class="btn blue big-btn" data-action="calibrate" data-testid="calibrate">Calibrate</button>
           </div>
         </section>
@@ -618,7 +618,16 @@ class ControllerApp {
 
   private updateScore(): void {
     this.els.score!.textContent =
-      this.hostState === 'playing' || this.score ? `Score ${this.score}` : '';
+      this.hostState === 'playing' || this.score
+        ? this.layout.scoreFormat === 'time'
+          ? `Time ${this.formatTime(this.score)}`
+          : `Score ${this.score}`
+        : '';
+  }
+
+  private formatTime(milliseconds: number): string {
+    const hundredths = Math.floor(milliseconds / 10);
+    return `${Math.floor(hundredths / 6000)}:${String(Math.floor(hundredths / 100) % 60).padStart(2, '0')}.${String(hundredths % 100).padStart(2, '0')}`;
   }
 
   private updateOverlays(): void {
@@ -639,7 +648,8 @@ class ControllerApp {
           <button class="btn primary big-btn" data-action="resume" data-testid="resume">Resume</button></div>
         <div class="row"><button class="btn" data-action="restart">Restart</button><button class="btn" data-action="calibrate">Recenter</button><button class="btn" data-action="quit">Quit game</button></div>`;
     } else if (this.phase === 'play' && this.hostState === 'gameover') {
-      html = `<h1>Game over</h1><p>Score <b>${this.score}</b> · Best <b>${this.best}</b></p>
+      const timeTrial = this.layout.scoreFormat === 'time';
+      html = `<h1>${timeTrial ? 'Race complete!' : 'Game over'}</h1><p>${timeTrial ? 'Time' : 'Score'} <b>${timeTrial ? this.formatTime(this.score) : this.score}</b> · Best <b>${timeTrial ? this.formatTime(this.best) : this.best}</b></p>
         <div class="row"><button class="btn primary big-btn" data-action="restart" data-testid="play-again">Play again</button></div>
         <div class="row"><button class="btn" data-action="quit">Back to games</button></div>`;
     }

@@ -2,7 +2,7 @@
 
 A browser gaming hub where **your phone is the controller**. Open the hub on a computer or TV, scan the QR code with your phone, and tilt to play. There's no app to install and no sign-up.
 
-The first game is **Sky Tilt**. You fly a low-poly plane through golden rings over an endless island and steer by tilting your phone. The phone's motion sensors (accelerometer and gyroscope) supply the input.
+Play **Sky Tilt**, a low-poly flight game, or **Tilt Racer**, a sunny top-down time trial. The phone's motion sensors (accelerometer and gyroscope) supply the input.
 
 **Play it:** https://sunilkumarsunil35.github.io/Joyconhub/ (after the one-time GitHub Pages setup below).
 
@@ -95,6 +95,14 @@ Fly through the rings. Each ring scores `100 × combo` and adds 3 seconds to the
 
 Controller settings (⚙️): tilt range (sensitivity), invert pitch or roll, twist-to-steer (gyro rudder), and vibration.
 
+## How to play Tilt Racer
+
+Hold your phone sideways like a steering wheel and calibrate. Tilt left or right to steer the coral car clockwise around the oval. Use the throttle slider to accelerate or slow down for corners. Grass slows the car down; **Back on track** returns you to the last checkpoint with a three-second penalty.
+
+Finish three laps to record your time. The HUD shows speed, lap, race time, and your fastest three-lap time, saved locally in this browser. Tap **Play again** on your phone or press **Enter** on the game screen to restart. Pause, recenter, and reconnection work just like Sky Tilt.
+
+For keyboard play, open `/?game=tilt-racer&debug=1` and choose **Play with keyboard**. Use **A/D** or **Left/Right** to steer, **Q/E** to adjust throttle, **Space** to recover, and **Esc** to pause.
+
 ## Repository layout
 
 ```
@@ -108,6 +116,7 @@ packages/
   game-sdk/      MiniGame interface the hub uses to run any game
 games/
   sky-tilt/      The plane game (Three.js): flight model, streaming terrain, ring course, HUD, audio
+  tilt-racer/    The light-themed car game (Canvas 2D): oval track, steering, timed laps, HUD
 e2e/             Playwright tests: hub page + emulated phone, over the relay AND peer-to-peer from a
                  GitHub Pages-like static sub-folder (with a local PeerJS server)
 PLAN.md          The original project plan

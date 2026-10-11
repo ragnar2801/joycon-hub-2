@@ -288,8 +288,13 @@ export class GameSession {
     if (e.kind === 'start') this.lastScore = 0;
     if (e.kind === 'gameover') {
       this.phase = 'gameover';
-      if ((e.best ?? e.score ?? 0) > this.best) {
-        this.best = e.best ?? e.score ?? 0;
+      const result = e.best ?? e.score ?? 0;
+      const improved =
+        this.def.controllerLayout.scoreFormat === 'time'
+          ? result > 0 && (this.best === 0 || result < this.best)
+          : result > this.best;
+      if (improved) {
+        this.best = result;
         writeJSON('local', `joyconhub:best:${this.def.id}`, { v: this.best });
       }
       this.sendState();

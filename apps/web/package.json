@@ -13,6 +13,7 @@
     "@joyconhub/input": "workspace:*",
     "@joyconhub/protocol": "workspace:*",
     "@joyconhub/sky-tilt": "workspace:*",
+    "@joyconhub/tilt-racer": "workspace:*",
     "peerjs": "1.5.5",
     "qrcode": "^1.5.4"
   },

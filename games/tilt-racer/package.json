@@ -1,0 +1,13 @@
+{
+  "name": "@joyconhub/tilt-racer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./meta": "./src/meta.ts"
+  },
+  "dependencies": {
+    "@joyconhub/game-sdk": "workspace:*"
+  }
+}

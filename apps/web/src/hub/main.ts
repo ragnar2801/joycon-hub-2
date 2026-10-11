@@ -40,7 +40,7 @@ function renderHome(): void {
       <section class="how">
         <div class="step"><span class="num">1</span><h4>Pick a game</h4><p>Open JoyCon Hub on a laptop, desktop or TV browser and choose a game.</p></div>
         <div class="step"><span class="num">2</span><h4>Scan the QR</h4><p>Point your phone camera at the code. The controller opens in your phone's browser.</p></div>
-        <div class="step"><span class="num">3</span><h4>Calibrate</h4><p>Hold the phone sideways like a gamepad and tap Calibrate. That pose means “fly straight”.</p></div>
+        <div class="step"><span class="num">3</span><h4>Calibrate</h4><p>Hold the phone sideways like a gamepad and tap Calibrate. That pose means “steer straight”.</p></div>
         <div class="step"><span class="num">4</span><h4>Tilt to play</h4><p>Your phone's gyroscope and accelerometer stream your moves to the big screen in real time.</p></div>
       </section>
       <footer>JoyCon Hub · Built for phones with motion sensors (iOS Safari 13+, Android Chrome).</footer>
