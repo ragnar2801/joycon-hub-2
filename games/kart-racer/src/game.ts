@@ -5,6 +5,7 @@ import { createKart, driveKart, smooth } from './driving.ts';
 import { buildKart, buildScenery, disposeScene } from './scene.ts';
 import { RaceHud, timeLabel } from './hud.ts';
 import { Battlefield } from './combat.ts';
+import { Pursuit } from './enemies.ts';
 
 const BEST_KEY = 'joyconhub:kart-racer:best-escape-time';
 const TIME_LIMIT = 100;
@@ -30,6 +31,7 @@ export class KartRacerGame implements MiniGame {
   private camera = new THREE.PerspectiveCamera(60, 1, 0.1, 750);
   private track = new EscapeRoute();
   private combat = new Battlefield(this.track);
+  private pursuit = new Pursuit(this.track, this.combat.blocks);
   private sun = new THREE.DirectionalLight(0xfff4dc, 2.2);
   private model = buildKart();
   private kart = createKart(this.track);
@@ -50,6 +52,7 @@ export class KartRacerGame implements MiniGame {
   private health = 100;
   private damageCooldown = 0;
   private destroyed = 0;
+  private enemiesDestroyed = 0;
   private fireHeld = false;
 
   mount(container: HTMLElement, ctx: GameContext): void {
@@ -94,7 +97,14 @@ export class KartRacerGame implements MiniGame {
     });
     sun.shadow.bias = -0.0004;
     sun.shadow.normalBias = 0.05;
-    this.scene.add(sun, sun.target, buildScenery(this.track), this.model.root, this.combat.group);
+    this.scene.add(
+      sun,
+      sun.target,
+      buildScenery(this.track),
+      this.model.root,
+      this.combat.group,
+      this.pursuit.group,
+    );
     this.hud = new RaceHud(
       this.root,
       this.track,
@@ -120,15 +130,16 @@ export class KartRacerGame implements MiniGame {
     this.paused = this.recoverHeld = false;
     this.fireHeld = false;
     this.health = 100;
-    this.damageCooldown = this.destroyed = 0;
+    this.damageCooldown = this.destroyed = this.enemiesDestroyed = 0;
     this.combat.reset();
+    this.pursuit.reset();
     this.notice = '';
     this.noticeTime = 0;
     this.syncModel(0);
     this.placeCamera(1, true);
     this.hud?.show(
       '3',
-      'Tilt to steer. Hold Fire to blast blockages on your way to safety.',
+      'Tilt to steer. Hold Fire to blast blockages and enemy cars. Get to safety!',
       'MAKE YOUR ESCAPE',
     );
     this.updateHud();
@@ -150,7 +161,7 @@ export class KartRacerGame implements MiniGame {
       } else
         this.hud?.show(
           String(Math.ceil(this.countdown)),
-          'Tilt to steer. Hold Fire to blast blockages on your way to safety.',
+          'Tilt to steer. Hold Fire to blast blockages and enemy cars. Get to safety!',
           'MAKE YOUR ESCAPE',
         );
     } else if (this.phase === 'racing') {
@@ -178,6 +189,7 @@ export class KartRacerGame implements MiniGame {
     // The kart is allocated before mounting; also release it if WebGL creation failed.
     if (!this.model.root.parent) disposeScene(this.model.root);
     if (!this.combat.group.parent) disposeScene(this.combat.group);
+    if (!this.pursuit.group.parent) disposeScene(this.pursuit.group);
     this.renderer?.dispose();
     this.renderer?.forceContextLoss();
     this.root?.remove();
@@ -195,6 +207,7 @@ export class KartRacerGame implements MiniGame {
       );
       this.elapsed += 3;
       this.combat.clearShots();
+      this.pursuit.regroup();
       this.fireHeld = false;
       this.notify('Back on track · +3 seconds', 3);
       this.ctx.emit({ kind: 'hit', message: this.notice, vibrate: [45] });
@@ -207,19 +220,29 @@ export class KartRacerGame implements MiniGame {
     const wasOffRoad = this.kart.offRoad;
     const hit = driveKart(this.kart, input, this.track, dt);
     this.damageCooldown = Math.max(0, this.damageCooldown - dt);
+    const enemies = this.pursuit.update(dt, this.kart);
+    if (enemies.spawned) {
+      this.notify('Enemy cars closing in · hold Fire or slip past', 2);
+      this.ctx.emit({ kind: 'hit', message: 'Enemy cars closing in', vibrate: [25, 40, 25] });
+    }
     const blasts = this.combat.update(
       dt,
       this.kart,
       input.connected && (!!input.buttons.fire || this.fireHeld),
+      this.pursuit.cars,
     );
     for (const blast of blasts) {
       if (!blast.destroyed) continue;
-      this.destroyed++;
-      this.notify('Blockage blasted! Keep moving.', 1.2);
-      this.ctx.emit({ kind: 'score', message: 'Blockage blasted', vibrate: [20] });
+      const enemy = blast.target.kind === 'enemy';
+      if (enemy) this.enemiesDestroyed++;
+      else this.destroyed++;
+      const message = enemy ? 'Enemy car blasted!' : 'Blockage blasted! Keep moving.';
+      this.notify(message, 1.2);
+      this.ctx.emit({ kind: 'score', message, vibrate: enemy ? [35, 30, 35] : [20] });
     }
     const block = this.combat.blockCollision(this.kart);
     if (block) this.damage(22, 'Blockage hit · steer around it or hold Fire');
+    else if (enemies.contact?.active) this.damage(18, 'Enemy ram · blast them or steer away');
     else if (hit) this.damage(5, 'Barrier bump! Ease into the turn.');
     if (this.phase === 'finished') return;
     this.elapsed += dt;
@@ -310,7 +333,7 @@ export class KartRacerGame implements MiniGame {
     if (this.health === 0)
       this.finish(
         false,
-        'Your kart took too much damage. Blast the blockages or steer around them.',
+        'Your kart took too much damage. Blast enemy cars and blockages, or steer around them.',
       );
   }
 
@@ -378,6 +401,14 @@ export class KartRacerGame implements MiniGame {
       z: k.z,
       health: this.health,
       destroyed: this.destroyed,
+      enemiesDestroyed: this.enemiesDestroyed,
+      enemies: this.pursuit.cars
+        .filter((car) => car.active)
+        .map((car) => ({
+          x: car.root.position.x,
+          z: car.root.position.z,
+          behind: car.distance < road.distance,
+        })),
       weapon: this.combat.ready,
       active: this.phase === 'racing' && !this.paused,
       handling:

@@ -5,7 +5,7 @@ export const kartRacerMeta: Omit<GameDefinition, 'load'> = {
   title: 'Sunny Escape',
   tagline: 'Keep moving. Make your escape.',
   description:
-    'Tilt your phone to steer a 3D kart down a winding escape route. Reach the safe zone before time runs out.',
+    'Tilt to steer, blast blockages and enemy cars, and escape down a winding 3D road. Make it to the safe zone!',
   accent: '#eaa04a',
   icon: '🏁',
   controllerLayout: {

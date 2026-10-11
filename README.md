@@ -4,13 +4,13 @@ A browser gaming hub where **your phone is the controller**. Open the hub on a c
 
 Play **Sky Tilt**, a low-poly flight game, **Tilt Racer**, a sunny top-down time trial, or **Sunny Escape**, a 3D kart escape game. The phone's motion sensors (accelerometer and gyroscope) supply the input.
 
-**Play it:** https://sunilkumarsunil35.github.io/Joyconhub/ (after the one-time GitHub Pages setup below).
+**Play it:** https://ragnar2801.github.io/joycon-hub-2/
 
 ## Play online (GitHub Pages)
 
 The hub is published as a plain static website. There is no server to run.
 
-1. Open **https://sunilkumarsunil35.github.io/Joyconhub/** on a computer or TV.
+1. Open **https://ragnar2801.github.io/joycon-hub-2/** on a computer or TV.
 2. Click **Sky Tilt** and scan the QR code with your phone camera.
 3. Tap **Start**, allow motion access, hold the phone sideways and tap **Calibrate**.
 
@@ -115,7 +115,9 @@ For keyboard play, open `/?game=kart-racer&debug=1` and choose **Play with keybo
 
 Hold **Fire** on your phone or the game screen to blast blockages. Keyboard players can hold **F**. Wooden crates take one shot; coral barricades take two. Every blockage row leaves a lane open, so you can also steer around them. Blockage collisions damage your kart and cost speed; barrier bumps cause minor damage. The HUD shows kart health, blockages cleared, and blaster readiness. Running out of health ends the escape. Restart restores all blockages and your health.
 
-Phases 1 and 2 are complete: driving, the escape route, firing, destructible blockages, and kart health. Phase 3 will add enemy cars trying to stop your escape.
+Enemy cars join the chase after the first stretch of road. Blue blockers cut into your lane ahead; faster pursuers overtake from behind and then try to block you. They avoid blockages, take two shots to destroy, and damage your kart when they ram you. Watch the pursuit warning and purple enemy dots on the minimap. Recovery makes pursuers fall back for a short reprieve, at the usual three-second cost. Enemy pressure increases later in the route, and every restart resets the chase.
+
+All three phases are complete: driving, firing and destructible blockages, and AI enemy cars. The goal is always to escape to the safe zone, with no laps. GitHub Pages runs the same game with the existing peer-to-peer phone connection.
 
 ## Repository layout
 

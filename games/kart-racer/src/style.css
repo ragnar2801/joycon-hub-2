@@ -167,6 +167,14 @@
   font-size: 10px;
   color: #718b7e;
 }
+.kr-combat .kr-pursuit {
+  display: block;
+  margin-top: 5px;
+  font-weight: 750;
+}
+.kr-combat .kr-pursuit.urgent {
+  color: #9875b0;
+}
 .kr-health-track {
   height: 5px;
   background: #e5eadd;
@@ -427,7 +435,7 @@
   border: 1px solid #fff;
 }
 .kr-view .debug-panel {
-  top: 230px;
+  top: 250px;
   bottom: auto;
   left: 16px;
   background: #fffdf0dd;

@@ -33,13 +33,14 @@ function instances(
   parent.add(mesh);
 }
 
-export function buildKart(): {
+export function buildKart(color = 0xf17761): {
   root: THREE.Group;
   frontWheels: THREE.Group[];
   wheels: THREE.Mesh[];
+  bodyMaterial: THREE.MeshStandardMaterial;
 } {
   const root = new THREE.Group();
-  const coral = material(0xf17761);
+  const coral = material(color);
   const cream = material(0xfff4dc);
   const dark = material(0x34454a);
   const glass = material(0x92c7cd);
@@ -77,7 +78,7 @@ export function buildKart(): {
       wheels.push(tire);
       if (z > 0) frontWheels.push(pivot);
     }
-  return { root, frontWheels, wheels };
+  return { root, frontWheels, wheels, bodyMaterial: coral };
 }
 
 export function buildScenery(track: EscapeRoute): THREE.Group {

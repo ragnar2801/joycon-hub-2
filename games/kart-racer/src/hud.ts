@@ -11,6 +11,7 @@ export class RaceHud {
   private message: HTMLElement;
   private dot: SVGCircleElement;
   private endZ: number;
+  private enemyDots: SVGCircleElement[];
 
   constructor(
     container: HTMLElement,
@@ -43,7 +44,8 @@ export class RaceHud {
       <div class="kr-notice" data-value="notice" role="status" aria-live="polite"></div>
       <div class="kr-combat"><span>KART HEALTH <strong data-value="health">100%</strong></span>
         <div class="kr-health-track" role="progressbar" aria-label="Kart health" aria-valuemin="0" aria-valuemax="100"><i data-value="healthbar"></i></div>
-        <small data-value="destroyed">0 blockages cleared</small>
+        <small data-value="destroyed">0 blocks · 0 cars blasted</small>
+        <small class="kr-pursuit" data-value="pursuit">Road is clear</small>
       </div>
       <button class="kr-fire" aria-label="Fire blaster" disabled><strong>✦ FIRE</strong><span>HOLD TO BLAST</span><i data-value="weapon"></i></button>
       <div class="kr-message" hidden role="status" aria-live="polite"><div>
@@ -62,6 +64,7 @@ export class RaceHud {
           <polyline points="${path}" fill="none" stroke="#8ca9a1" stroke-width="5" stroke-linejoin="round" />
           <circle cx="${safe.x * 0.45 + 85}" cy="${124 - (safe.z / this.endZ) * 112}" r="6" fill="#519977" stroke="white" stroke-width="2" />
           <circle class="kr-map-dot" r="5" fill="#ef7b64" stroke="white" stroke-width="2" />
+          ${Array.from({ length: 5 }, () => '<circle class="kr-map-enemy" r="3" fill="#8c78af" stroke="white" stroke-width="1" visibility="hidden" />').join('')}
         </svg></div>
       </div>`;
     this.root.querySelectorAll<HTMLElement>('[data-value]').forEach((el) => {
@@ -69,6 +72,7 @@ export class RaceHud {
     });
     this.message = this.root.querySelector('.kr-message')!;
     this.dot = this.root.querySelector('.kr-map-dot')!;
+    this.enemyDots = [...this.root.querySelectorAll<SVGCircleElement>('.kr-map-enemy')];
     this.root.querySelector<HTMLButtonElement>('.kr-restart')!.onclick = restart;
     this.root.querySelector<HTMLButtonElement>('.kr-pause')!.onclick = pause;
     const fireButton = this.root.querySelector<HTMLButtonElement>('.kr-fire')!;
@@ -97,6 +101,8 @@ export class RaceHud {
     notice: string;
     health: number;
     destroyed: number;
+    enemiesDestroyed: number;
+    enemies: { x: number; z: number; behind: boolean }[];
     weapon: number;
     active: boolean;
   }): void {
@@ -119,7 +125,20 @@ export class RaceHud {
     this.values.healthbar!.style.width = `${data.health}%`;
     this.values.healthbar!.classList.toggle('urgent', data.health <= 30);
     this.root.querySelector('.kr-health-track')!.setAttribute('aria-valuenow', String(data.health));
-    this.values.destroyed!.textContent = `${data.destroyed} blockages cleared`;
+    this.values.destroyed!.textContent = `${data.destroyed} blocks · ${data.enemiesDestroyed} cars blasted`;
+    this.values.pursuit!.textContent = data.enemies.some((enemy) => enemy.behind)
+      ? 'Pursuer behind you!'
+      : data.enemies.length
+        ? `${data.enemies.length} enemy ${data.enemies.length === 1 ? 'car' : 'cars'} ahead`
+        : 'Road is clear';
+    this.values.pursuit!.classList.toggle('urgent', data.enemies.length > 0);
+    this.enemyDots.forEach((dot, i) => {
+      const enemy = data.enemies[i];
+      dot.setAttribute('visibility', enemy ? 'visible' : 'hidden');
+      if (!enemy) return;
+      dot.setAttribute('cx', String(enemy.x * 0.45 + 85));
+      dot.setAttribute('cy', String(124 - (enemy.z / this.endZ) * 112));
+    });
     this.values.weapon!.style.transform = `scaleX(${data.weapon})`;
     this.root.querySelector<HTMLButtonElement>('.kr-fire')!.disabled = !data.active;
     if (this.values.notice!.textContent !== data.notice)
