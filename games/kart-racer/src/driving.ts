@@ -41,7 +41,9 @@ export function driveKart(
   const target = !input.connected ? 0 : kart.braking ? 8 : kart.offRoad ? 13 : 27;
   const acceleration = target > kart.speed ? 9 : kart.braking ? 24 : 16;
   kart.speed += THREE.MathUtils.clamp(target - kart.speed, -acceleration * dt, acceleration * dt);
-  kart.heading += kart.steering * 1.55 * (kart.speed / (kart.speed + 9)) * dt;
+  // Forward is +Z, so the chase camera sees positive yaw as a left turn.
+  // Controller roll is positive for right: subtract it to turn right on screen.
+  kart.heading -= kart.steering * 1.55 * (kart.speed / (kart.speed + 9)) * dt;
   kart.heading = Math.atan2(Math.sin(kart.heading), Math.cos(kart.heading));
   kart.x += Math.sin(kart.heading) * kart.speed * dt;
   kart.z += Math.cos(kart.heading) * kart.speed * dt;

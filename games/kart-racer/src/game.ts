@@ -354,11 +354,11 @@ export class KartRacerGame implements MiniGame {
     this.model.root.rotation.set(
       k.braking ? -0.035 : 0,
       k.heading,
-      -k.steering * Math.min(k.speed / 27, 1) * 0.065,
+      k.steering * Math.min(k.speed / 27, 1) * 0.065,
       'YXZ',
     );
     this.model.frontWheels.forEach((wheel) => {
-      wheel.rotation.y = k.steering * 0.42;
+      wheel.rotation.y = -k.steering * 0.42;
     });
     this.model.wheels.forEach((wheel) => {
       wheel.rotation.x += (k.speed / 0.43) * dt;
